@@ -67,3 +67,34 @@ Comptes créés :
 - `responsable@enib.tn` / `resp123`
 - `operateur@enib.tn` / `oper123`
 - `technicien@enib.tn` / `tech123`
+
+## 7. Déploiement Render
+
+Le projet contient une configuration Render prête à l'emploi :
+
+- `render.yaml` : configuration du service web
+- `build.sh` : installation, collecte des fichiers statiques et migrations
+- `.python-version` : version Python recommandée
+
+Variables d'environnement à configurer sur Render si vous ne passez pas par `render.yaml` :
+
+```text
+DEBUG=False
+SECRET_KEY=une-cle-secrete-longue
+ALLOWED_HOSTS=gmao-project.onrender.com
+CSRF_TRUSTED_ORIGINS=https://gmao-project.onrender.com
+DATABASE_URL=postgresql://...
+```
+
+Commandes Render :
+
+```bash
+bash build.sh
+gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
+```
+
+Après le premier déploiement avec une base PostgreSQL, exécuter une seule fois :
+
+```bash
+python manage.py seed_demo_data
+```
