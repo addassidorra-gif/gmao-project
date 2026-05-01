@@ -5,3 +5,5 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt
 python manage.py collectstatic --no-input
 python manage.py migrate
+python manage.py create_superuser
+python manage.py seed_demo_data 2>/dev/null || true
