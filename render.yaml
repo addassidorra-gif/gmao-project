@@ -16,5 +16,3 @@ services:
         value: "https://gmao-project.onrender.com"
       - key: SECRET_KEY
         generateValue: true
-      - key: DATABASE_URL
-        value: ""

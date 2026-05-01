@@ -98,7 +98,7 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 
 database_url = os.getenv("DATABASE_URL", "").strip()
-if database_url.startswith(("postgresql://", "postgres://")):
+if database_url and database_url.startswith(("postgresql://", "postgres://")):
     DATABASES = {"default": parse_database_url(database_url)}
 else:
     DATABASES = {
