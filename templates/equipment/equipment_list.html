@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Équipements | GMAO ENIB{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>Équipements</h2>
+        <p>Suivi du parc matériel et de son état.</p>
+    </div>
+    <div class="header-actions">
+        <a href="{% url 'equipment:export_csv' %}" class="btn btn-secondary">Exporter CSV</a>
+        {% if request.user.role == 'admin' or request.user.role == 'responsable' %}
+            <a href="{% url 'equipment:create' %}" class="btn btn-primary">Ajouter un équipement</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <form method="get" class="filters">
+        <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Rechercher un équipement" class="form-control">
+        <select name="status" class="form-control">
+            <option value="">Tous les statuts</option>
+            <option value="En service" {% if request.GET.status == 'En service' %}selected{% endif %}>En service</option>
+            <option value="En panne" {% if request.GET.status == 'En panne' %}selected{% endif %}>En panne</option>
+            <option value="En maintenance" {% if request.GET.status == 'En maintenance' %}selected{% endif %}>En maintenance</option>
+            <option value="Hors service" {% if request.GET.status == 'Hors service' %}selected{% endif %}>Hors service</option>
+        </select>
+        <button type="submit" class="btn btn-secondary">Filtrer</button>
+    </form>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Nom</th>
+                    <th>Type</th>
+                    <th>Localisation</th>
+                    <th>Statut</th>
+                    <th>Criticité</th>
+                    {% if request.user.role == 'admin' or request.user.role == 'responsable' %}
+                        <th>Actions</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in equipements %}
+                    <tr>
+                        <td>{{ item.code }}</td>
+                        <td>{{ item.name }}</td>
+                        <td>{{ item.equipment_type }}</td>
+                        <td>{{ item.location }}</td>
+                        <td><span class="badge {% if item.status == 'En service' %}success{% elif item.status == 'En maintenance' %}warning{% else %}danger{% endif %}">{{ item.status }}</span></td>
+                        <td>{{ item.criticality }}</td>
+                        {% if request.user.role == 'admin' or request.user.role == 'responsable' %}
+                            <td class="actions">
+                                <a href="{% url 'equipment:update' item.pk %}" class="btn btn-small">Modifier</a>
+                                <a href="{% url 'equipment:delete' item.pk %}" class="btn btn-small btn-danger">Supprimer</a>
+                            </td>
+                        {% endif %}
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="7" class="empty-state">Aucun équipement trouvé.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

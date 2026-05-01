@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Audit logs | GMAO ENIB{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>Journal d'audit</h2>
+        <p>Historique des actions réalisées dans l'application.</p>
+    </div>
+</div>
+
+<div class="card">
+    <form method="get" class="filters">
+        <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Rechercher une action" class="form-control">
+        <button type="submit" class="btn btn-secondary">Filtrer</button>
+    </form>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Utilisateur</th>
+                    <th>Action</th>
+                    <th>Modèle</th>
+                    <th>Objet</th>
+                    <th>Détails</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in audit_logs %}
+                    <tr>
+                        <td>{{ item.created_at|date:"d/m/Y H:i" }}</td>
+                        <td>{% if item.user %}{{ item.user.full_name }}{% else %}Système{% endif %}</td>
+                        <td>{{ item.action }}</td>
+                        <td>{{ item.model_name }}</td>
+                        <td>{{ item.object_id }}</td>
+                        <td>{{ item.details }}</td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="6" class="empty-state">Aucun log trouvé.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Pannes | GMAO ENIB{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>Pannes</h2>
+        <p>Déclaration, suivi et résolution des incidents.</p>
+    </div>
+    <div class="header-actions">
+        <a href="{% url 'maintenance:incident_export_csv' %}" class="btn btn-secondary">Exporter CSV</a>
+        {% if request.user.role != 'technicien' %}
+            <a href="{% url 'maintenance:incident_create' %}" class="btn btn-primary">Ajouter une panne</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <form method="get" class="filters">
+        <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Rechercher une panne" class="form-control">
+        <select name="status" class="form-control">
+            <option value="">Tous les statuts</option>
+            <option value="En attente" {% if request.GET.status == 'En attente' %}selected{% endif %}>En attente</option>
+            <option value="En cours" {% if request.GET.status == 'En cours' %}selected{% endif %}>En cours</option>
+            <option value="Résolue" {% if request.GET.status == 'Résolue' %}selected{% endif %}>Résolue</option>
+        </select>
+        <button type="submit" class="btn btn-secondary">Filtrer</button>
+    </form>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Titre</th>
+                    <th>Équipement</th>
+                    <th>Technicien</th>
+                    <th>Statut</th>
+                    <th>Priorité</th>
+                    {% if request.user.role != 'technicien' %}
+                        <th>Actions</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in incidents %}
+                    <tr>
+                        <td>{{ item.code }}</td>
+                        <td>{{ item.title }}</td>
+                        <td>{{ item.equipment.name }}</td>
+                        <td>{% if item.technician %}{{ item.technician.full_name }}{% else %}-{% endif %}</td>
+                        <td><span class="badge {% if item.status == 'Résolue' %}success{% elif item.status == 'En cours' %}warning{% else %}danger{% endif %}">{{ item.status }}</span></td>
+                        <td>{{ item.priority }}</td>
+                        {% if request.user.role != 'technicien' %}
+                            <td class="actions">
+                                <a href="{% url 'maintenance:incident_update' item.pk %}" class="btn btn-small">Modifier</a>
+                                {% if request.user.role == 'admin' or request.user.role == 'responsable' %}
+                                    <a href="{% url 'maintenance:incident_delete' item.pk %}" class="btn btn-small btn-danger">Supprimer</a>
+                                {% endif %}
+                            </td>
+                        {% endif %}
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="7" class="empty-state">Aucune panne trouvée.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

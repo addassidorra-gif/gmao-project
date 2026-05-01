@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}{% if object %}Modifier panne{% else %}Ajouter panne{% endif %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>{% if object %}Modifier panne{% else %}Ajouter panne{% endif %}</h2>
+        <p>Renseigner les informations de l'incident.</p>
+    </div>
+</div>
+
+<div class="card form-card">
+    <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {{ field.errors }}
+            </div>
+        {% endfor %}
+        <div class="form-actions">
+            <a href="{% url 'maintenance:incident_list' %}" class="btn btn-secondary">Annuler</a>
+            <button type="submit" class="btn btn-primary">Enregistrer</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

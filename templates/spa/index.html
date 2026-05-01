@@ -1,0 +1,136 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GMAO ENIB — Gestion de Maintenance</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/spa.css' %}">
+</head>
+<body>
+    <div id="pg-login">
+        <div class="ll">
+            <svg viewBox="0 0 400 300" fill="none">
+                <defs><radialGradient id="g1" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(6,182,212,.22)"/><stop offset="100%" stop-color="transparent"/></radialGradient></defs>
+                <ellipse cx="200" cy="215" rx="155" ry="43" fill="url(#g1)"/>
+                <rect x="148" y="58" width="88" height="155" rx="6" fill="rgba(26,63,166,.52)" stroke="rgba(59,130,246,.38)" stroke-width="1"/>
+                <rect x="158" y="73" width="30" height="20" rx="3" fill="rgba(255,255,255,.1)"/>
+                <rect x="194" y="73" width="30" height="20" rx="3" fill="rgba(255,255,255,.08)"/>
+                <rect x="158" y="100" width="30" height="20" rx="3" fill="rgba(255,255,255,.1)"/>
+                <rect x="194" y="100" width="30" height="20" rx="3" fill="rgba(255,255,255,.07)"/>
+                <rect x="158" y="130" width="66" height="4" rx="2" fill="rgba(6,182,212,.5)"/>
+                <rect x="158" y="141" width="50" height="4" rx="2" fill="rgba(6,182,212,.33)"/>
+                <rect x="158" y="152" width="58" height="4" rx="2" fill="rgba(6,182,212,.22)"/>
+                <rect x="46" y="118" width="64" height="97" rx="5" fill="rgba(26,63,166,.4)" stroke="rgba(59,130,246,.28)"/>
+                <rect x="56" y="130" width="19" height="13" rx="2" fill="rgba(255,255,255,.1)"/>
+                <rect x="82" y="130" width="19" height="13" rx="2" fill="rgba(255,255,255,.08)"/>
+                <rect x="292" y="98" width="58" height="117" rx="5" fill="rgba(26,63,166,.44)" stroke="rgba(59,130,246,.3)"/>
+                <rect x="302" y="111" width="17" height="12" rx="2" fill="rgba(255,255,255,.1)"/>
+                <line x1="110" y1="175" x2="148" y2="175" stroke="rgba(6,182,212,.42)" stroke-width="1.5" stroke-dasharray="4 3"/>
+                <line x1="236" y1="163" x2="292" y2="153" stroke="rgba(6,182,212,.42)" stroke-width="1.5" stroke-dasharray="4 3"/>
+                <circle cx="130" cy="90" r="4" fill="rgba(6,182,212,.7)"/>
+                <circle cx="272" cy="82" r="3.5" fill="rgba(59,130,246,.6)"/>
+                <circle cx="324" cy="86" r="5" fill="rgba(20,184,166,.6)"/>
+                <circle cx="70" cy="104" r="3" fill="rgba(6,182,212,.5)"/>
+                <circle cx="192" cy="45" r="10" fill="rgba(255,255,255,.28)" stroke="rgba(255,255,255,.18)"/>
+                <rect x="187" y="55" width="10" height="16" rx="2" fill="rgba(255,255,255,.22)"/>
+                <circle cx="336" cy="212" r="17" fill="none" stroke="rgba(6,182,212,.28)" stroke-width="1.8"/>
+                <circle cx="336" cy="212" r="7" fill="none" stroke="rgba(6,182,212,.38)" stroke-width="1.5"/>
+                <line x1="336" y1="192" x2="336" y2="198" stroke="rgba(6,182,212,.35)" stroke-width="2"/>
+                <line x1="336" y1="226" x2="336" y2="232" stroke="rgba(6,182,212,.35)" stroke-width="2"/>
+                <line x1="316" y1="212" x2="322" y2="212" stroke="rgba(6,182,212,.35)" stroke-width="2"/>
+                <line x1="350" y1="212" x2="356" y2="212" stroke="rgba(6,182,212,.35)" stroke-width="2"/>
+            </svg>
+        </div>
+        <div class="lr">
+            <div class="logo">EN<em>I</em>B</div>
+            <div class="logo-sub">Gestion de Maintenance</div>
+            <form class="lf" onsubmit="doLogin(event)">
+                <div id="l-err" class="l-err">⚠ Identifiants incorrects.</div>
+                <div class="lfield">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <input type="text" id="l-email" placeholder="Email ou nom d'utilisateur">
+                </div>
+                <div class="lfield">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    <input type="password" id="l-pwd" placeholder="Mot de passe">
+                </div>
+                <button type="submit" class="btn-login">Se connecter</button>
+            </form>
+            <div class="demo-wrap">
+                <div class="demo-t">Comptes de démonstration</div>
+                <div class="demo-grid">
+                    <button class="demo-btn" onclick="ql('admin@enib.tn','admin123')">👑 Admin</button>
+                    <button class="demo-btn" onclick="ql('responsable@enib.tn','resp123')">🏭 Responsable</button>
+                    <button class="demo-btn" onclick="ql('operateur@enib.tn','oper123')">👷 Opérateur</button>
+                    <button class="demo-btn" onclick="ql('technicien@enib.tn','tech123')">🔧 Technicien</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="app" style="display:none;min-height:100vh">
+        <aside class="sidebar">
+            <div class="sb-logo">
+                <div>
+                    <div class="sb-logo-text">EN<em>I</em>B</div>
+                    <div class="sb-logo-sub">GMAO</div>
+                </div>
+            </div>
+            <nav class="sb-nav" id="sb-nav"></nav>
+            <div class="sb-bottom">
+                <div class="sb-user">
+                    <div id="sb-av" class="sb-av">AD</div>
+                    <div>
+                        <div id="sb-name" class="sb-uname">—</div>
+                        <div id="sb-role" class="sb-urole">—</div>
+                    </div>
+                </div>
+                <button class="btn-out" onclick="logout()">↩ Déconnexion</button>
+            </div>
+        </aside>
+
+        <div class="main-area">
+            <header class="topbar">
+                <div id="tb-title" class="topbar-title">Dashboard</div>
+                <div class="topbar-right">
+                    <div id="tb-greet" class="topbar-greet"></div>
+                    <div class="tb-bell" title="Notifications">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--g600)" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                        <div class="dot"></div>
+                    </div>
+                    <div id="tb-av" class="tb-avatar">AD</div>
+                </div>
+            </header>
+            <div class="content" id="main"></div>
+        </div>
+    </div>
+
+    <div id="modals"></div>
+    <div id="toast-el" style="display:none"></div>
+    <div id="app-loader" class="app-loader hidden">
+        <div class="loader-card">
+            <div class="loader-spinner"></div>
+            <div id="loader-text">Chargement...</div>
+        </div>
+    </div>
+
+    <script>
+        window.GMAO_API = {
+            base: "",
+            login: "/api/auth/login/",
+            refresh: "/api/auth/refresh/",
+            logout: "/api/auth/logout/",
+            me: "/api/auth/me/",
+            users: "/api/users/",
+            equipments: "/api/equipements/",
+            incidents: "/api/incidents/",
+            interventions: "/api/interventions/",
+            auditLogs: "/api/audit-logs/"
+        };
+    </script>
+    <script src="{% static 'js/spa.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Confirmation suppression{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>Confirmer la suppression</h2>
+        <p>Cette action est irréversible.</p>
+    </div>
+</div>
+
+<div class="card form-card">
+    <form method="post">
+        {% csrf_token %}
+        <p>Voulez-vous vraiment supprimer cet élément ?</p>
+        <div class="form-actions">
+            <a href="javascript:history.back()" class="btn btn-secondary">Annuler</a>
+            <button type="submit" class="btn btn-danger">Supprimer</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

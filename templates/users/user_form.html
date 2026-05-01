@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}{% if object %}Modifier utilisateur{% else %}Ajouter utilisateur{% endif %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>{% if object %}Modifier utilisateur{% else %}Ajouter utilisateur{% endif %}</h2>
+        <p>Compléter les informations du compte.</p>
+    </div>
+</div>
+
+<div class="card form-card">
+    <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+                {{ field.errors }}
+            </div>
+        {% endfor %}
+        <div class="form-actions">
+            <a href="{% url 'users:list' %}" class="btn btn-secondary">Annuler</a>
+            <button type="submit" class="btn btn-primary">Enregistrer</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

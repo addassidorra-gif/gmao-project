@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Interventions | GMAO ENIB{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>Interventions</h2>
+        <p>Planification, exécution et compte-rendu.</p>
+    </div>
+    <div class="header-actions">
+        <a href="{% url 'maintenance:intervention_export_csv' %}" class="btn btn-secondary">Exporter CSV</a>
+        {% if request.user.role == 'admin' or request.user.role == 'responsable' %}
+            <a href="{% url 'maintenance:intervention_create' %}" class="btn btn-primary">Ajouter une intervention</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <form method="get" class="filters">
+        <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Rechercher une intervention" class="form-control">
+        <select name="status" class="form-control">
+            <option value="">Tous les statuts</option>
+            <option value="Planifiée" {% if request.GET.status == 'Planifiée' %}selected{% endif %}>Planifiée</option>
+            <option value="En cours" {% if request.GET.status == 'En cours' %}selected{% endif %}>En cours</option>
+            <option value="Terminée" {% if request.GET.status == 'Terminée' %}selected{% endif %}>Terminée</option>
+        </select>
+        <button type="submit" class="btn btn-secondary">Filtrer</button>
+    </form>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Équipement</th>
+                    <th>Technicien</th>
+                    <th>Type</th>
+                    <th>Statut</th>
+                    <th>Début</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in interventions %}
+                    <tr>
+                        <td>{{ item.code }}</td>
+                        <td>{{ item.equipment.name }}</td>
+                        <td>{{ item.technician.full_name }}</td>
+                        <td>{{ item.intervention_type }}</td>
+                        <td><span class="badge {% if item.status == 'Terminée' %}success{% elif item.status == 'En cours' %}warning{% else %}dark{% endif %}">{{ item.status }}</span></td>
+                        <td>{{ item.start_date }}</td>
+                        <td class="actions">
+                            {% if request.user.role == 'admin' or request.user.role == 'responsable' or request.user.role == 'technicien' %}
+                                <a href="{% url 'maintenance:intervention_update' item.pk %}" class="btn btn-small">Modifier</a>
+                            {% endif %}
+                            {% if request.user.role == 'admin' or request.user.role == 'responsable' %}
+                                <a href="{% url 'maintenance:intervention_delete' item.pk %}" class="btn btn-small btn-danger">Supprimer</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="7" class="empty-state">Aucune intervention trouvée.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}GMAO ENIB{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body>
+    <div class="app-shell">
+        {% if request.user.is_authenticated %}
+            <aside class="sidebar">
+                <div class="brand">
+                    <div class="brand-logo">G</div>
+                    <div>
+                        <h1>GMAO ENIB</h1>
+                        <p>{{ request.user.full_name }}</p>
+                    </div>
+                </div>
+
+                <nav class="nav-links">
+                    <a href="{% url 'maintenance:dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">Dashboard</a>
+                    <a href="{% url 'equipment:list' %}" class="{% if 'equipements' in request.path %}active{% endif %}">Équipements</a>
+                    <a href="{% url 'maintenance:incident_list' %}" class="{% if 'pannes' in request.path %}active{% endif %}">Pannes</a>
+                    <a href="{% url 'maintenance:intervention_list' %}" class="{% if 'interventions' in request.path %}active{% endif %}">Interventions</a>
+                    {% if request.user.role == 'admin' %}
+                        <a href="{% url 'users:list' %}" class="{% if 'utilisateurs' in request.path %}active{% endif %}">Utilisateurs</a>
+                        <a href="{% url 'maintenance:audit_logs' %}" class="{% if 'audit-logs' in request.path %}active{% endif %}">Audit logs</a>
+                    {% endif %}
+                </nav>
+
+                <div class="sidebar-footer">
+                    <span class="role-badge">{{ request.user.get_role_display }}</span>
+                    <a class="logout-link" href="{% url 'users:logout' %}">Déconnexion</a>
+                </div>
+            </aside>
+        {% endif %}
+
+        <main class="content">
+            {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                        <div class="message {{ message.tags }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+    <script src="{% static 'js/app.js' %}"></script>
+</body>
+</html>

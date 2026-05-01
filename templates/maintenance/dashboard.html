@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | GMAO ENIB{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>Dashboard</h2>
+        <p>Vue globale de la maintenance.</p>
+    </div>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <span>Total équipements</span>
+        <strong>{{ total_equipements }}</strong>
+    </div>
+    <div class="stat-card">
+        <span>En service</span>
+        <strong>{{ equipements_en_service }}</strong>
+    </div>
+    <div class="stat-card">
+        <span>Pannes ouvertes</span>
+        <strong>{{ incidents_ouverts }}</strong>
+    </div>
+    <div class="stat-card">
+        <span>Interventions en cours</span>
+        <strong>{{ interventions_en_cours }}</strong>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <div class="card">
+        <div class="card-header">
+            <h3>Pannes récentes</h3>
+            <a href="{% url 'maintenance:incident_list' %}">Voir tout</a>
+        </div>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Titre</th>
+                        <th>Équipement</th>
+                        <th>Statut</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in recent_incidents %}
+                        <tr>
+                            <td>{{ item.code }}</td>
+                            <td>{{ item.title }}</td>
+                            <td>{{ item.equipment.name }}</td>
+                            <td>{{ item.status }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="4" class="empty-state">Aucune panne récente.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3>Interventions récentes</h3>
+            <a href="{% url 'maintenance:intervention_list' %}">Voir tout</a>
+        </div>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Équipement</th>
+                        <th>Technicien</th>
+                        <th>Statut</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in recent_interventions %}
+                        <tr>
+                            <td>{{ item.code }}</td>
+                            <td>{{ item.equipment.name }}</td>
+                            <td>{{ item.technician.full_name }}</td>
+                            <td>{{ item.status }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="4" class="empty-state">Aucune intervention récente.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
