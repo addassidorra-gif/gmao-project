@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 import os
 from datetime import timedelta
 from pathlib import Path
@@ -97,19 +96,20 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
-database_url = os.getenv("DATABASE_URL", "").strip()
-if database_url and database_url.startswith(("postgresql://", "postgres://")):
-    DATABASES = {"default": parse_database_url(database_url)}
-else:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
-        }
-    }
+DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///db.sqlite3")
+
+db_config = parse_database_url(DATABASE_URL) if DATABASE_URL else {
+    "ENGINE": "django.db.backends.sqlite3",
+    "NAME": BASE_DIR / "db.sqlite3",
+}
+db_config["CONN_MAX_AGE"] = 600
+
+DATABASES = {
+    "default": db_config
+}
+
 
 AUTH_PASSWORD_VALIDATORS = [
-    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
 ]
 
