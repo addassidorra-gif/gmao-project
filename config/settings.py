@@ -22,21 +22,50 @@ def load_env_file() -> None:
 
 
 def parse_database_url(database_url: str) -> dict[str, object]:
-    parsed = urlparse(database_url)
-    query = parse_qs(parsed.query)
-
+    """Parse database URL into Django database configuration."""
+    if not database_url or not database_url.strip():
+        # Return SQLite config for empty URLs
+        return {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    
+    database_url = database_url.strip()
+    
+    # Handle SQLite URLs
+    if database_url.startswith("sqlite"):
+        path = database_url.replace("sqlite:///", "").replace("sqlite://", "")
+        if not path.startswith("/"):
+            path = str(BASE_DIR / path)
+        return {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": path,
+        }
+    
+    # Handle PostgreSQL URLs
+    if database_url.startswith("postgresql"):
+        parsed = urlparse(database_url)
+        query = parse_qs(parsed.query)
+        db_name = parsed.path.lstrip("/") or "postgres"
+        
+        return {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": db_name,
+            "USER": unquote(parsed.username or ""),
+            "PASSWORD": unquote(parsed.password or ""),
+            "HOST": parsed.hostname or "",
+            "PORT": str(parsed.port or 5432),
+            "OPTIONS": {
+                key: values[-1]
+                for key, values in query.items()
+                if values
+            },
+        }
+    
+    # Default to SQLite if URL format is unrecognized
     return {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": parsed.path.lstrip("/") or "postgres",
-        "USER": unquote(parsed.username or ""),
-        "PASSWORD": unquote(parsed.password or ""),
-        "HOST": parsed.hostname or "",
-        "PORT": str(parsed.port or 5432),
-        "OPTIONS": {
-            key: values[-1]
-            for key, values in query.items()
-            if values
-        },
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
     }
 
 
@@ -96,12 +125,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
-DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///db.sqlite3")
+DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
 
-db_config = parse_database_url(DATABASE_URL) if DATABASE_URL else {
-    "ENGINE": "django.db.backends.sqlite3",
-    "NAME": BASE_DIR / "db.sqlite3",
-}
+db_config = parse_database_url(DATABASE_URL)
 db_config["CONN_MAX_AGE"] = 600
 
 DATABASES = {
