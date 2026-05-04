@@ -87,6 +87,22 @@ function toInputDate(dateValue) {
   return String(dateValue).slice(0, 10);
 }
 
+function normalizeLocationLabel(value = "") {
+  const raw = value.trim();
+  const key = raw
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+  if (!key) return "";
+  if (key.includes("industriel") || key.includes("(gi)")) return "Laboratoire Génie Industriel";
+  if (key.includes("mecanique") || key.includes("(gm)")) return "Laboratoire Génie Mécanique";
+  if (key.includes("materiaux")) return "Laboratoire Matériaux";
+  if (key.includes("automatisme")) return "Laboratoire Automatisme";
+  if (key.includes("info")) return "Laboratoire Informatique";
+  if (key.includes("robot")) return "Atelier Robotique";
+  return raw.replace(/^labo\b/i, "Laboratoire");
+}
+
 function daysBetween(startDate, endDate) {
   if (!startDate || !endDate) return 0;
   const start = new Date(startDate);
@@ -270,7 +286,7 @@ function mapEquipement(item) {
     etat: item.status,
     criticite: item.criticality,
     fabricant: item.manufacturer || "",
-    localisation: item.location || "",
+    localisation: normalizeLocationLabel(item.location || ""),
     purchaseDate: item.purchase_date || "",
     description: item.description || "",
   };
@@ -651,7 +667,14 @@ function buildDashboardScenario() {
     };
   });
   const overdueInterventions = planningData().filter((item) => item.planningStatus === "En retard").length;
-  const repeatedFaults = dashboardData.pannes.filter((item) => item.statut !== "Résolue").length;
+  const repeatedByEquipment = {};
+  dashboardData.pannes.forEach((item) => {
+    repeatedByEquipment[item.equipementId] = (repeatedByEquipment[item.equipementId] || 0) + 1;
+  });
+  const repeatedFault = Object.entries(repeatedByEquipment).sort((a, b) => b[1] - a[1])[0];
+  const repeatedFaultDesc = repeatedFault
+    ? `${gEq(repeatedFault[0]).nom} (${repeatedFault[1]} panne${repeatedFault[1] > 1 ? "s" : ""})`
+    : "Aucune panne répétitive";
 
   return {
     title: "Tableau de bord Maintenance",
@@ -687,7 +710,7 @@ function buildDashboardScenario() {
     alertTiles: [
       { icon: "❗", tone: "a-red", title: "Disponibilité faible", desc: `${kpis.enPanne} équipements indisponibles` },
       { icon: "⚠️", tone: "a-orange", title: "MTTR élevé", desc: `${Math.round(kpis.mttr)} h de réparation moyenne` },
-      { icon: "🚨", tone: "a-red", title: "Pannes répétitives", desc: `Convoyeur 03 (${repeatedFaults} pannes)` },
+      { icon: "🚨", tone: "a-red", title: "Pannes répétitives", desc: repeatedFaultDesc },
       { icon: "📌", tone: "a-orange", title: "Interventions en retard", desc: `${overdueInterventions} interventions en retard` },
     ],
   };
@@ -711,7 +734,7 @@ function pgDashboard() {
           </select>
         </label>
         <label class="dash-select-wrap">
-          <span>Site</span>
+          <span>Laboratoire</span>
           <select class="dash-select" onchange="setDashboardFilter('site', this.value)">
             ${scenario.siteOptions}
           </select>

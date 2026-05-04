@@ -11,7 +11,6 @@ class Equipement(models.Model):
     class Criticality(models.TextChoices):
         TRES_ELEVEE = "Très élevée", "Très élevée"
         ELEVEE = "Élevée", "Élevée"
-        HAUTE = "Haute", "Haute"
         MOYENNE = "Moyenne", "Moyenne"
         FAIBLE = "Faible", "Faible"
 

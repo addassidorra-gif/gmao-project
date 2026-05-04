@@ -24,9 +24,9 @@ def generate_code(model_class, prefix: str) -> str:
 
 class Incident(models.Model):
     class Priority(models.TextChoices):
-        URGENTE = "Urgente", "Urgente"
-        NORMALE = "Normale", "Normale"
-        FAIBLE = "Faible", "Faible"
+        TRES_URGENT = "Très urgent", "Très urgent"
+        URGENT = "Urgent", "Urgent"
+        NORMAL = "Normal", "Normal"
 
     class Status(models.TextChoices):
         EN_ATTENTE = "En attente", "En attente"
@@ -56,7 +56,7 @@ class Incident(models.Model):
         choices=Equipement.Criticality.choices,
         default=Equipement.Criticality.MOYENNE,
     )
-    priority = models.CharField(max_length=20, choices=Priority.choices, default=Priority.NORMALE)
+    priority = models.CharField(max_length=20, choices=Priority.choices, default=Priority.NORMAL)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.EN_ATTENTE)
     reported_at = models.DateTimeField(default=timezone.now)
     resolved_at = models.DateTimeField(null=True, blank=True)
@@ -101,7 +101,7 @@ class Intervention(models.Model):
         related_name="interventions",
     )
     intervention_type = models.CharField(max_length=20, choices=Type.choices, default=Type.CORRECTIVE)
-    priority = models.CharField(max_length=20, choices=Incident.Priority.choices, default=Incident.Priority.NORMALE)
+    priority = models.CharField(max_length=20, choices=Incident.Priority.choices, default=Incident.Priority.NORMAL)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.EN_COURS)
     description = models.TextField()
     report = models.TextField(blank=True)

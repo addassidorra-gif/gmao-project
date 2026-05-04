@@ -12,7 +12,9 @@
         {% if request.user.is_authenticated %}
             <aside class="sidebar">
                 <div class="brand">
-                    <div class="brand-logo">G</div>
+                    <div class="brand-logo">
+                        <img src="{% static 'images/enib_logo.svg' %}" alt="ENIB Logo" class="enib-logo-img">
+                    </div>
                     <div>
                         <h1>GMAO ENIB</h1>
                         <p>{{ request.user.full_name }}</p>

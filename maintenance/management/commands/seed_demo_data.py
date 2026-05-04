@@ -19,27 +19,27 @@ USER_DATA = [
 ]
 
 EQUIPMENT_DATA = [
-    {"code": "68/19", "name": "Machine de traction TESTCOM 10", "equipment_type": "Machine d'essai mécanique", "manufacturer": "TESTCOM", "reference": "68/19", "location": "Labo matériaux (GM)", "status": "En service", "criticality": "Très élevée", "year": 2019},
-    {"code": "311/11", "name": "Banc régulation niveau et débit", "equipment_type": "Banc didactique automatisme", "manufacturer": "", "reference": "311/11", "location": "Labo industriel (GI)", "status": "En service", "criticality": "Élevée", "year": 2011},
-    {"code": "314/11", "name": "Système didactique de régulation", "equipment_type": "Banc thermique / automatique", "manufacturer": "", "reference": "314/11", "location": "Labo industriel", "status": "En maintenance", "criticality": "Moyenne", "year": 2013},
-    {"code": "62/18", "name": "Banc Jominy", "equipment_type": "Machine d'essai thermique", "manufacturer": "", "reference": "62/18", "location": "Labo mécanique", "status": "En panne", "criticality": "Élevée", "year": 2018},
-    {"code": "FC015", "name": "Automate programmable (API)", "equipment_type": "Électronique", "manufacturer": "Siemens", "reference": "100/04/02/07", "location": "Labo Automatisme", "status": "En panne", "criticality": "Haute", "year": 2020},
-    {"code": "VC022", "name": "Robot industriel", "equipment_type": "Robot", "manufacturer": "KUKA", "reference": "100/05/05/06", "location": "Atelier Robot", "status": "En maintenance", "criticality": "Haute", "year": 2021},
-    {"code": "FC017", "name": "PC Dell", "equipment_type": "Informatique", "manufacturer": "Dell", "reference": "300/07/03/11", "location": "Labo Info", "status": "En service", "criticality": "Faible", "year": 2020},
-    {"code": "FC011", "name": "Tour CNC", "equipment_type": "Machine-outil", "manufacturer": "DMG MORI", "reference": "100/03/05/08", "location": "Labo Mécanique", "status": "Hors service", "criticality": "Haute", "year": 2018},
-    {"code": "VC031", "name": "Compresseur d'air", "equipment_type": "Machine", "manufacturer": "Atlas Copco", "reference": "300/02/04/01", "location": "Labo Mécanique", "status": "En service", "criticality": "Moyenne", "year": 2017},
+    {"code": "68/19", "name": "Machine de traction TESTCOM 10", "equipment_type": "Machine d'essai mécanique", "manufacturer": "TESTCOM", "reference": "68/19", "location": "Laboratoire Matériaux", "status": "En service", "criticality": "Très élevée", "year": 2019},
+    {"code": "311/11", "name": "Banc régulation niveau et débit", "equipment_type": "Banc didactique automatisme", "manufacturer": "", "reference": "311/11", "location": "Laboratoire Génie Industriel", "status": "En service", "criticality": "Élevée", "year": 2011},
+    {"code": "314/11", "name": "Système didactique de régulation", "equipment_type": "Banc thermique / automatique", "manufacturer": "", "reference": "314/11", "location": "Laboratoire Génie Industriel", "status": "En maintenance", "criticality": "Moyenne", "year": 2013},
+    {"code": "62/18", "name": "Banc Jominy", "equipment_type": "Machine d'essai thermique", "manufacturer": "", "reference": "62/18", "location": "Laboratoire Génie Mécanique", "status": "En panne", "criticality": "Élevée", "year": 2018},
+    {"code": "FC015", "name": "Automate programmable (API)", "equipment_type": "Électronique", "manufacturer": "Siemens", "reference": "100/04/02/07", "location": "Laboratoire Automatisme", "status": "En panne", "criticality": "Élevée", "year": 2020},
+    {"code": "VC022", "name": "Robot industriel", "equipment_type": "Robot", "manufacturer": "KUKA", "reference": "100/05/05/06", "location": "Laboratoire Automatisme", "status": "En maintenance", "criticality": "Élevée", "year": 2021},
+    {"code": "FC017", "name": "PC Dell", "equipment_type": "Informatique", "manufacturer": "Dell", "reference": "300/07/03/11", "location": "Laboratoire Informatique", "status": "En service", "criticality": "Faible", "year": 2020},
+    {"code": "FC011", "name": "Tour CNC", "equipment_type": "Machine-outil", "manufacturer": "DMG MORI", "reference": "100/03/05/08", "location": "Laboratoire Génie Mécanique", "status": "Hors service", "criticality": "Élevée", "year": 2018},
+    {"code": "VC031", "name": "Compresseur d'air", "equipment_type": "Machine", "manufacturer": "Atlas Copco", "reference": "300/02/04/01", "location": "Laboratoire Génie Mécanique", "status": "En service", "criticality": "Moyenne", "year": 2017},
 ]
 
 INCIDENT_DATA = [
-    {"code": "P001", "equipment": "FC015", "technician": "technicien@enib.tn", "operator": "operateur@enib.tn", "title": "API ne démarre pas", "description": "Absence de démarrage du processeur.", "criticality": "Moyenne", "priority": "Normale", "status": "En attente", "date": "2024-05-27"},
-    {"code": "P002", "equipment": "VC031", "technician": "technicien@enib.tn", "operator": "sara@enib.tn", "title": "Fuite hydraulique", "description": "Fuite hydraulique au niveau du joint d'étanchéité.", "criticality": "Haute", "priority": "Urgente", "status": "Résolue", "date": "2026-01-07"},
-    {"code": "P003", "equipment": "VC022", "technician": "karim@enib.tn", "operator": "operateur@enib.tn", "title": "Erreur capteur", "description": "Signal incohérent sur l'axe 3.", "criticality": "Moyenne", "priority": "Normale", "status": "En attente", "date": "2025-12-12"},
+    {"code": "P001", "equipment": "FC015", "technician": "technicien@enib.tn", "operator": "operateur@enib.tn", "title": "API ne démarre pas", "description": "Absence de démarrage du processeur.", "criticality": "Moyenne", "priority": "Normal", "status": "En attente", "date": "2024-05-27"},
+    {"code": "P002", "equipment": "VC031", "technician": "technicien@enib.tn", "operator": "sara@enib.tn", "title": "Fuite hydraulique", "description": "Fuite hydraulique au niveau du joint d'étanchéité.", "criticality": "Élevée", "priority": "Très urgent", "status": "Résolue", "date": "2026-01-07"},
+    {"code": "P003", "equipment": "VC022", "technician": "karim@enib.tn", "operator": "operateur@enib.tn", "title": "Erreur capteur", "description": "Signal incohérent sur l'axe 3.", "criticality": "Moyenne", "priority": "Normal", "status": "En attente", "date": "2025-12-12"},
 ]
 
 INTERVENTION_DATA = [
-    {"code": "I001", "incident": "P001", "technician": "technicien@enib.tn", "equipment": "FC015", "description": "Remplacement carte mère processeur", "type": "Corrective", "priority": "Urgente", "status": "Terminée", "report": "Carte CPU remplacée avec succès.", "start_date": "2024-05-27", "end_date": "2024-10-15", "next_maintenance": "2025-05-27", "equipment_status_after": "En service"},
-    {"code": "I002", "incident": "P002", "technician": "karim@enib.tn", "equipment": "VC031", "description": "Réparation fuite joint d'étanchéité", "type": "Corrective", "priority": "Urgente", "status": "Terminée", "report": "Joint remplacé, test de pression validé.", "start_date": "2026-04-07", "end_date": "2026-04-24", "next_maintenance": "2026-10-07", "equipment_status_after": "En service"},
-    {"code": "I003", "incident": "P003", "technician": "karim@enib.tn", "equipment": "VC022", "description": "Diagnostic capteurs de position", "type": "Corrective", "priority": "Normale", "status": "En cours", "report": "", "start_date": "2026-04-24", "end_date": "", "next_maintenance": "", "equipment_status_after": "En maintenance"},
+    {"code": "I001", "incident": "P001", "technician": "technicien@enib.tn", "equipment": "FC015", "description": "Remplacement carte mère processeur", "type": "Corrective", "priority": "Très urgent", "status": "Terminée", "report": "Carte CPU remplacée avec succès.", "start_date": "2024-05-27", "end_date": "2024-10-15", "next_maintenance": "2025-05-27", "equipment_status_after": "En service"},
+    {"code": "I002", "incident": "P002", "technician": "karim@enib.tn", "equipment": "VC031", "description": "Réparation fuite joint d'étanchéité", "type": "Corrective", "priority": "Très urgent", "status": "Terminée", "report": "Joint remplacé, test de pression validé.", "start_date": "2026-04-07", "end_date": "2026-04-24", "next_maintenance": "2026-10-07", "equipment_status_after": "En service"},
+    {"code": "I003", "incident": "P003", "technician": "karim@enib.tn", "equipment": "VC022", "description": "Diagnostic capteurs de position", "type": "Corrective", "priority": "Normal", "status": "En cours", "report": "", "start_date": "2026-04-24", "end_date": "", "next_maintenance": "", "equipment_status_after": "En maintenance"},
 ]
 
 
