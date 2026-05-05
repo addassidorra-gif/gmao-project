@@ -16,7 +16,7 @@ USER_DATA = [
     {"email": "operateur@enib.tn", "full_name": "Lina Mansour", "role": "operateur", "password": "oper123"},
     {"email": "sara@enib.tn", "full_name": "Sara Kouki", "role": "operateur", "password": "oper123"},
     {"email": "technicien@enib.tn", "full_name": "Hbib Hamemi", "role": "technicien", "password": "tech123"},
-    {"email": "riadh@enib.tn", "full_name": "Riadh Garbi", "role": "technicien", "password": "tech123", "is_active": False},
+    {"email": "riadh@enib.tn", "full_name": "Riadh Garbi", "role": "technicien", "password": "tech123"},
     {"email": "karim@enib.tn", "full_name": "Karim Salah", "role": "technicien", "password": "tech123"},
 ]
 
