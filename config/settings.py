@@ -4,6 +4,7 @@ from datetime import timedelta
 from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlparse
 
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -43,10 +44,14 @@ def parse_database_url(database_url: str) -> dict[str, object]:
         }
     
     # Handle PostgreSQL URLs
-    if database_url.startswith("postgresql"):
+    if database_url.startswith(("postgresql://", "postgres://")):
         parsed = urlparse(database_url)
         query = parse_qs(parsed.query)
         db_name = parsed.path.lstrip("/") or "postgres"
+        if not parsed.hostname:
+            raise ImproperlyConfigured(
+                "DATABASE_URL est invalide: le nom d'hôte PostgreSQL/Supabase est absent."
+            )
         
         return {
             "ENGINE": "django.db.backends.postgresql",
@@ -62,11 +67,10 @@ def parse_database_url(database_url: str) -> dict[str, object]:
             },
         }
     
-    # Default to SQLite if URL format is unrecognized
-    return {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
+    raise ImproperlyConfigured(
+        "DATABASE_URL est défini mais son format n'est pas reconnu. "
+        "Utilisez sqlite:///db.sqlite3 ou postgresql://user:password@host:port/database?sslmode=require."
+    )
 
 
 def csv_env(name: str, default: str = "") -> list[str]:

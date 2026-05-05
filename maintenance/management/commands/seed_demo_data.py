@@ -1,7 +1,9 @@
 from datetime import date, datetime
 
 from django.contrib.auth import get_user_model
+from django.conf import settings
 from django.core.management.base import BaseCommand
+from django.db import connection
 from django.utils import timezone
 
 from equipment.models import Equipement
@@ -46,7 +48,23 @@ INTERVENTION_DATA = [
 class Command(BaseCommand):
     help = "Charge des données de démonstration pour la GMAO."
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--allow-production",
+            action="store_true",
+            help="Autorise explicitement le seed sur PostgreSQL/Supabase ou en DEBUG=False.",
+        )
+
     def handle(self, *args, **options):
+        if (connection.vendor == "postgresql" or not settings.DEBUG) and not options["allow_production"]:
+            self.stdout.write(
+                self.style.ERROR(
+                    "Seed annulé: base PostgreSQL/production détectée. "
+                    "Utilisez --allow-production seulement si vous voulez vraiment écrire les données de démonstration."
+                )
+            )
+            return
+
         User = get_user_model()
         users_by_email = {}
 
@@ -59,6 +77,7 @@ class Command(BaseCommand):
                     "is_staff": item.get("is_staff", item["role"] == "admin"),
                     "is_superuser": item["role"] == "admin",
                     "is_active": item.get("is_active", True),
+                    "approval_status": User.ApprovalStatus.ACCEPTED if item.get("is_active", True) else User.ApprovalStatus.REJECTED,
                 },
             )
             user.full_name = item["full_name"]
@@ -66,6 +85,7 @@ class Command(BaseCommand):
             user.is_staff = item.get("is_staff", item["role"] == "admin")
             user.is_superuser = item["role"] == "admin"
             user.is_active = item.get("is_active", True)
+            user.approval_status = User.ApprovalStatus.ACCEPTED if user.is_active else User.ApprovalStatus.REJECTED
             user.set_password(item["password"])
             user.save()
             users_by_email[user.email] = user

@@ -1,9 +1,12 @@
 from rest_framework import viewsets
+from rest_framework.decorators import action
+from rest_framework.exceptions import PermissionDenied
 
 from users.models import User
 from users.permissions import AuditLogPermission, IncidentPermission, InterventionPermission
 
 from .models import AuditLog, Incident, Intervention
+from .export_utils import export_response
 from .serializers import (
     AuditLogSerializer,
     IncidentSerializer,
@@ -63,6 +66,27 @@ class IncidentViewSet(viewsets.ModelViewSet):
         )
         instance.delete()
 
+    @action(detail=False, methods=["get"], url_path=r"export/(?P<file_format>pdf|xlsx)")
+    def export(self, request, file_format=None):
+        if request.user.role not in [User.Role.RESPONSABLE, User.Role.OPERATEUR]:
+            raise PermissionDenied("Export réservé aux rôles autorisés.")
+        headers = ["Code", "Titre", "Équipement", "Technicien", "Opérateur", "Criticité", "Priorité", "Statut", "Signalée le"]
+        rows = (
+            [
+                item.code,
+                item.title,
+                item.equipment.name,
+                item.technician.full_name if item.technician else "",
+                item.operator.full_name if item.operator else "",
+                item.criticality,
+                item.priority,
+                item.status,
+                item.reported_at,
+            ]
+            for item in self.get_queryset().select_related("equipment", "technician", "operator")
+        )
+        return export_response(file_format, "pannes", "Pannes ENIB", headers, rows)
+
 
 class InterventionViewSet(viewsets.ModelViewSet):
     permission_classes = [InterventionPermission]
@@ -109,6 +133,27 @@ class InterventionViewSet(viewsets.ModelViewSet):
             details={"code": instance.code, "description": instance.description},
         )
         instance.delete()
+
+    @action(detail=False, methods=["get"], url_path=r"export/(?P<file_format>pdf|xlsx)")
+    def export(self, request, file_format=None):
+        if request.user.role not in [User.Role.RESPONSABLE, User.Role.TECHNICIEN]:
+            raise PermissionDenied("Export réservé aux rôles autorisés.")
+        headers = ["Code", "Équipement", "Technicien", "Type", "Priorité", "Statut", "Début", "Fin", "Rapport"]
+        rows = (
+            [
+                item.code,
+                item.equipment.name,
+                item.technician.full_name,
+                item.intervention_type,
+                item.priority,
+                item.status,
+                item.start_date,
+                item.end_date or "",
+                item.report,
+            ]
+            for item in self.get_queryset().select_related("equipment", "technician")
+        )
+        return export_response(file_format, "interventions", "Interventions ENIB", headers, rows)
 
 
 class AuditLogViewSet(viewsets.ReadOnlyModelViewSet):

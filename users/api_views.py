@@ -1,6 +1,7 @@
 from django.db.models import Q
 from rest_framework import status, viewsets
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -15,6 +16,7 @@ from .serializers import (
     LogoutSerializer,
     MeSerializer,
     PublicUserSerializer,
+    RegistrationSerializer,
     UserSerializer,
 )
 
@@ -61,6 +63,46 @@ class UserViewSet(viewsets.ModelViewSet):
             details={"email": user.email, "full_name": user.full_name},
         )
 
+    @action(detail=True, methods=["post"])
+    def approve(self, request, pk=None):
+        user = self.get_object()
+        if user == request.user:
+            return Response(
+                {"detail": "Votre propre compte ne peut pas être validé depuis cette action."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        user.approval_status = User.ApprovalStatus.ACCEPTED
+        user.is_active = True
+        user.save(update_fields=["approval_status", "is_active"])
+        create_audit_log(
+            user=request.user,
+            action="approve",
+            model_name="User",
+            object_id=user.pk,
+            details={"email": user.email, "full_name": user.full_name},
+        )
+        return Response(UserSerializer(user).data)
+
+    @action(detail=True, methods=["post"])
+    def reject(self, request, pk=None):
+        user = self.get_object()
+        if user == request.user:
+            return Response(
+                {"detail": "Vous ne pouvez pas refuser votre propre compte."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        user.approval_status = User.ApprovalStatus.REJECTED
+        user.is_active = False
+        user.save(update_fields=["approval_status", "is_active"])
+        create_audit_log(
+            user=request.user,
+            action="reject",
+            model_name="User",
+            object_id=user.pk,
+            details={"email": user.email, "full_name": user.full_name},
+        )
+        return Response(UserSerializer(user).data)
+
     def perform_update(self, serializer):
         user = serializer.save()
         create_audit_log(
@@ -104,6 +146,29 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                 details={"message": "Connexion API JWT"},
             )
         return response
+
+
+class RegisterAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = RegistrationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        create_audit_log(
+            user=None,
+            action="register",
+            model_name="User",
+            object_id=user.pk,
+            details={"email": user.email, "full_name": user.full_name, "role": user.role},
+        )
+        return Response(
+            {
+                "detail": "Votre demande de compte a été envoyée. Un administrateur doit la valider.",
+                "user": RegistrationSerializer(user).data,
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class LogoutAPIView(APIView):

@@ -38,10 +38,10 @@ class IncidentPermission(BasePermission):
         if request.user.role == "responsable":
             if request.method in SAFE_METHODS:
                 return True
-            return view.action in ["update", "partial_update"]
+            return view.action in ["update", "partial_update", "export"]
 
         if request.user.role == "operateur":
-            return view.action in ["list", "retrieve", "create"]
+            return view.action in ["list", "retrieve", "create", "export"]
 
         if request.user.role == "technicien":
             return False
@@ -72,10 +72,10 @@ class InterventionPermission(BasePermission):
         if request.user.role == "responsable":
             if request.method in SAFE_METHODS:
                 return True
-            return view.action in ["create", "update", "partial_update"]
+            return view.action in ["create", "update", "partial_update", "export"]
 
         if request.user.role == "technicien":
-            return view.action in ["list", "retrieve", "update", "partial_update"]
+            return view.action in ["list", "retrieve", "update", "partial_update", "export"]
 
         if request.user.role == "operateur":
             return False

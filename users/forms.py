@@ -32,11 +32,12 @@ class UserForm(forms.ModelForm, StyledFormMixin):
 
     class Meta:
         model = User
-        fields = ["full_name", "email", "role", "is_active", "password"]
+        fields = ["full_name", "email", "role", "approval_status", "is_active", "password"]
         labels = {
             "full_name": "Nom complet",
             "email": "Adresse email",
             "role": "Rôle",
+            "approval_status": "Validation administrateur",
             "is_active": "Compte actif",
         }
 
@@ -49,6 +50,10 @@ class UserForm(forms.ModelForm, StyledFormMixin):
         password = self.cleaned_data.get("password")
         if password:
             user.set_password(password)
+        if user.approval_status == User.ApprovalStatus.ACCEPTED:
+            user.is_active = True
+        elif user.approval_status in [User.ApprovalStatus.PENDING, User.ApprovalStatus.REJECTED]:
+            user.is_active = False
         if commit:
             user.save()
         return user

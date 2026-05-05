@@ -1,5 +1,8 @@
 from rest_framework import viewsets
+from rest_framework.decorators import action
+from rest_framework.exceptions import PermissionDenied
 
+from maintenance.export_utils import export_response
 from maintenance.utils import create_audit_log
 from users.permissions import EquipmentPermission
 
@@ -41,3 +44,23 @@ class EquipementViewSet(viewsets.ModelViewSet):
             details={"code": instance.code, "name": instance.name},
         )
         instance.delete()
+
+    @action(detail=False, methods=["get"], url_path=r"export/(?P<file_format>pdf|xlsx)")
+    def export(self, request, file_format=None):
+        if request.user.role != "admin":
+            raise PermissionDenied("Export réservé à l'administrateur.")
+        headers = ["Code", "Nom", "Type", "Fabricant", "Référence", "Laboratoire", "Statut", "Criticité"]
+        rows = (
+            [
+                item.code,
+                item.name,
+                item.equipment_type,
+                item.manufacturer,
+                item.reference,
+                item.location,
+                item.status,
+                item.criticality,
+            ]
+            for item in self.get_queryset()
+        )
+        return export_response(file_format, "equipements", "Équipements ENIB", headers, rows)

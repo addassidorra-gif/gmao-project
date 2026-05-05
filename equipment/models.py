@@ -36,6 +36,11 @@ class Equipement(models.Model):
         ordering = ["name", "code"]
         verbose_name = "Équipement"
         verbose_name_plural = "Équipements"
+        indexes = [
+            models.Index(fields=["status"], name="equipment_status_idx"),
+            models.Index(fields=["location"], name="equipment_location_idx"),
+            models.Index(fields=["criticality"], name="equipment_criticality_idx"),
+        ]
 
     def __str__(self):
         return f"{self.code} - {self.name}"

@@ -59,6 +59,7 @@
                 </div>
                 <button type="submit" class="btn-login">Se connecter</button>
             </form>
+            <button type="button" class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px" onclick="modalRegister()">Créer un compte</button>
             <div class="demo-wrap">
                 <div class="demo-t">Comptes de démonstration</div>
                 <div class="demo-grid">
@@ -124,11 +125,17 @@
             refresh: "/api/auth/refresh/",
             logout: "/api/auth/logout/",
             me: "/api/auth/me/",
+            register: "/api/auth/register/",
             users: "/api/users/",
             equipments: "/api/equipements/",
             incidents: "/api/incidents/",
             interventions: "/api/interventions/",
-            auditLogs: "/api/audit-logs/"
+            auditLogs: "/api/audit-logs/",
+            exports: {
+                equipments: "/api/equipements/export/",
+                incidents: "/api/incidents/export/",
+                interventions: "/api/interventions/export/"
+            }
         };
     </script>
     <script src="{% static 'js/spa.js' %}"></script>

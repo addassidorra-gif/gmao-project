@@ -66,6 +66,13 @@ class Incident(models.Model):
         ordering = ["-reported_at", "-id"]
         verbose_name = "Panne"
         verbose_name_plural = "Pannes"
+        indexes = [
+            models.Index(fields=["status"], name="incident_status_idx"),
+            models.Index(fields=["reported_at"], name="incident_reported_idx"),
+            models.Index(fields=["operator"], name="incident_operator_idx"),
+            models.Index(fields=["technician"], name="incident_technician_idx"),
+            models.Index(fields=["equipment"], name="incident_equipment_idx"),
+        ]
 
     def save(self, *args, **kwargs):
         if not self.code:
@@ -116,6 +123,12 @@ class Intervention(models.Model):
         ordering = ["-start_date", "-id"]
         verbose_name = "Intervention"
         verbose_name_plural = "Interventions"
+        indexes = [
+            models.Index(fields=["status"], name="intervention_status_idx"),
+            models.Index(fields=["start_date"], name="intervention_start_idx"),
+            models.Index(fields=["technician"], name="intervention_tech_idx"),
+            models.Index(fields=["equipment"], name="intervention_equipment_idx"),
+        ]
 
     def save(self, *args, **kwargs):
         if not self.code:
@@ -144,6 +157,11 @@ class AuditLog(models.Model):
         ordering = ["-created_at", "-id"]
         verbose_name = "Journal d'audit"
         verbose_name_plural = "Journaux d'audit"
+        indexes = [
+            models.Index(fields=["created_at"], name="audit_created_idx"),
+            models.Index(fields=["action"], name="audit_action_idx"),
+            models.Index(fields=["model_name"], name="audit_model_idx"),
+        ]
 
     def __str__(self):
         return f"{self.action} - {self.model_name} - {self.object_id}"

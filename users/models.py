@@ -12,6 +12,11 @@ class User(AbstractUser):
         TECHNICIEN = "technicien", "Technicien"
         OPERATEUR = "operateur", "Opérateur"
 
+    class ApprovalStatus(models.TextChoices):
+        PENDING = "pending", "En attente"
+        ACCEPTED = "accepted", "Accepté"
+        REJECTED = "rejected", "Refusé"
+
     ROLE_HIERARCHY = {
         Role.OPERATEUR: 10,
         Role.TECHNICIEN: 20,
@@ -23,6 +28,11 @@ class User(AbstractUser):
     email = models.EmailField(unique=True)
     full_name = models.CharField(max_length=255, validators=[MinLengthValidator(3)])
     role = models.CharField(max_length=20, choices=Role.choices, default=Role.OPERATEUR)
+    approval_status = models.CharField(
+        max_length=20,
+        choices=ApprovalStatus.choices,
+        default=ApprovalStatus.ACCEPTED,
+    )
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["full_name"]
@@ -31,6 +41,11 @@ class User(AbstractUser):
 
     class Meta:
         ordering = ["full_name", "email"]
+        indexes = [
+            models.Index(fields=["role"], name="user_role_idx"),
+            models.Index(fields=["approval_status"], name="user_approval_idx"),
+            models.Index(fields=["is_active"], name="user_active_idx"),
+        ]
 
     def __str__(self):
         return f"{self.full_name} ({self.email})"
@@ -46,7 +61,15 @@ class User(AbstractUser):
 
     @property
     def status_label(self):
+        if self.approval_status == self.ApprovalStatus.PENDING:
+            return "En attente"
+        if self.approval_status == self.ApprovalStatus.REJECTED:
+            return "Refusé"
         return "Actif" if self.is_active else "Inactif"
+
+    @property
+    def approval_status_label(self):
+        return self.get_approval_status_display()
 
     @property
     def display_id(self):

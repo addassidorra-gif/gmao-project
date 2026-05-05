@@ -1,3 +1,5 @@
+import os
+
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 
@@ -8,17 +10,30 @@ class Command(BaseCommand):
     help = "Create a superuser if it does not exist"
 
     def handle(self, *args, **options):
-        if not User.objects.filter(email="admin@gmao.local").exists():
+        email = os.getenv("DJANGO_SUPERUSER_EMAIL") or os.getenv("ADMIN_EMAIL")
+        password = os.getenv("DJANGO_SUPERUSER_PASSWORD") or os.getenv("ADMIN_PASSWORD")
+        full_name = os.getenv("DJANGO_SUPERUSER_FULL_NAME", "Administrateur GMAO")
+
+        if not email or not password:
+            self.stdout.write(
+                self.style.WARNING(
+                    "Superuser skipped: set ADMIN_EMAIL and ADMIN_PASSWORD in the environment."
+                )
+            )
+            return
+
+        if not User.objects.filter(email=email).exists():
             User.objects.create_superuser(
-                email="admin@gmao.local",
-                password="admin123456",
-                full_name="Administrator",
-                role="admin"
+                email=email,
+                password=password,
+                full_name=full_name,
+                role="admin",
+                approval_status=User.ApprovalStatus.ACCEPTED,
             )
             self.stdout.write(
                 self.style.SUCCESS(
-                    'Successfully created superuser "admin" with password "admin123456"'
+                    f'Successfully created superuser "{email}"'
                 )
             )
         else:
-            self.stdout.write("Superuser 'admin' already exists")
+            self.stdout.write(f'Superuser "{email}" already exists')

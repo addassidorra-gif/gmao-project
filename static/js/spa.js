@@ -272,6 +272,8 @@ function mapUser(user) {
     role: user.role,
     roleLabel: user.role_label || ROLE_LABEL[user.role] || user.role,
     statut: user.is_active ? "actif" : "inactif",
+    approvalStatus: user.approval_status || (user.is_active ? "accepted" : "rejected"),
+    approvalStatusLabel: user.approval_status_label || user.status_label || (user.is_active ? "Accepté" : "Inactif"),
     initiales: user.initials || makeInitials(user.full_name),
   };
 }
@@ -393,6 +395,44 @@ async function doLogin(event) {
     return;
   }
   await loginWithCredentials(email, password);
+}
+
+function modalRegister() {
+  openModal(`<div class="modal"><div class="mhd"><h3>Créer un compte</h3><div class="mx" onclick="closeModal()">✕</div></div>
+    <div class="mbd">
+      <div class="fg"><label class="fl">Nom complet</label><input class="fc" id="reg-nom" placeholder="Prénom Nom"></div>
+      <div class="fg"><label class="fl">Email ENIB</label><input class="fc" id="reg-email" type="email" placeholder="nom@enib.tn"></div>
+      <div class="fg"><label class="fl">Mot de passe</label><input class="fc" id="reg-pwd" type="password"></div>
+      <div class="fg"><label class="fl">Rôle demandé</label><select class="fc" id="reg-role">
+        <option value="operateur">Opérateur</option>
+        <option value="technicien">Technicien</option>
+        <option value="responsable">Resp. Atelier</option>
+      </select></div>
+      <p style="font-size:12px;color:var(--g500);line-height:1.6;margin-top:8px">Le compte sera accessible après validation par un administrateur.</p>
+    </div>
+    <div class="mft"><button class="btn btn-ghost" onclick="closeModal()">Annuler</button><button class="btn btn-prim" onclick="submitRegistration()">Envoyer</button></div>
+  </div>`);
+}
+
+async function submitRegistration() {
+  try {
+    const fullName = V("reg-nom").trim();
+    const email = V("reg-email").trim().toLowerCase();
+    const password = V("reg-pwd").trim();
+    ensureMinLength(fullName, 3, "Le nom complet");
+    if (!validateEmail(email)) throw new Error("Adresse email invalide.");
+    if (password.length < 6) throw new Error("Le mot de passe doit contenir au moins 6 caractères.");
+    const data = await apiFetch(API.register, {
+      method: "POST",
+      body: JSON.stringify({ full_name: fullName, email, password, role: V("reg-role") }),
+      loadingText: "Envoi de la demande...",
+    }, false);
+    closeModal();
+    document.getElementById("l-err").textContent = data.detail || "Demande envoyée. En attente de validation.";
+    document.getElementById("l-err").style.display = "block";
+  } catch (error) {
+    toast(error.message, "err");
+  }
 }
 
 async function ql(email, password) {
@@ -974,7 +1014,11 @@ function pgEquipements() {
   return `
     <div class="s-title">
       <div><h2>Tableau des équipements</h2><p>${DB.equipements.length} équipements enregistrés</p></div>
-      <button class="btn btn-succ" onclick="modalAddEquip()">＋ Ajouter un équipement</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+        <button class="btn btn-ghost" onclick="exportData('equipments','xlsx')">Excel</button>
+        <button class="btn btn-ghost" onclick="exportData('equipments','pdf')">PDF</button>
+        <button class="btn btn-succ" onclick="modalAddEquip()">＋ Ajouter un équipement</button>
+      </div>
     </div>
     <div class="card"><div class="tbl-wrap"><table>
       <thead><tr><th>Code</th><th>Criticité</th><th>Nom</th><th>Type</th><th>Références</th><th>Localisation</th><th>État</th><th>Actions</th></tr></thead>
@@ -1123,20 +1167,21 @@ async function delEquip(index) {
 }
 
 function pgUtilisateurs() {
+  const pending = DB.users.filter((item) => item.approvalStatus === "pending").length;
   return `
     <div class="s-title">
-      <div><h2>Tableau des utilisateurs</h2><p>${DB.users.length} comptes</p></div>
+      <div><h2>Tableau des utilisateurs</h2><p>${DB.users.length} comptes · ${pending} en attente</p></div>
       <button class="btn btn-succ" onclick="modalAddUser()">＋ Ajouter utilisateur</button>
     </div>
     <div class="card"><div class="tbl-wrap"><table>
-      <thead><tr><th>ID</th><th>Nom</th><th>Email</th><th>Rôle</th><th>Statut</th><th>Actions</th></tr></thead>
+      <thead><tr><th>ID</th><th>Nom</th><th>Email</th><th>Rôle</th><th>Validation</th><th>Statut</th><th>Actions</th></tr></thead>
       <tbody id="tb-users">${rowsUsers()}</tbody>
     </table></div></div>`;
 }
 
 function rowsUsers() {
   if (!DB.users.length) {
-    return `<tr><td colspan="6" class="empty">Aucun utilisateur disponible.</td></tr>`;
+    return `<tr><td colspan="7" class="empty">Aucun utilisateur disponible.</td></tr>`;
   }
   return DB.users.map((item, index) => `
     <tr>
@@ -1147,12 +1192,21 @@ function rowsUsers() {
       </div></td>
       <td style="font-size:12.5px;color:var(--g500)">${item.email}</td>
       <td><span class="badge b-blue">${ROLE_LABEL[item.role] || item.role}</span></td>
+      <td>${userApprovalBadge(item)}</td>
       <td>${bEtat(item.statut === "actif" ? "Actif" : "Inactif")}</td>
       <td style="white-space:nowrap">
+        ${item.approvalStatus === "pending" ? `<button class="btn btn-succ btn-sm" onclick="approveUser(${index})">Accepter</button>
+        <button class="btn btn-warn btn-sm" style="margin-left:4px" onclick="rejectUser(${index})">Refuser</button>` : ""}
         <button class="btn btn-ghost btn-sm" onclick="modalEditUser(${index})">✏ Modifier</button>
         <button class="btn btn-dang btn-sm" style="margin-left:4px" onclick="delUser(${index})">🗑</button>
       </td>
     </tr>`).join("");
+}
+
+function userApprovalBadge(item) {
+  if (item.approvalStatus === "pending") return `<span class="badge b-yellow">En attente</span>`;
+  if (item.approvalStatus === "rejected") return `<span class="badge b-red">Refusé</span>`;
+  return `<span class="badge b-green">Accepté</span>`;
 }
 
 function modalAddUser() {
@@ -1163,6 +1217,7 @@ function modalAddUser() {
       <div class="fg"><label class="fl">Mot de passe</label><input class="fc" id="u-pwd" type="password"></div>
       <div class="fr2">
         <div class="fg"><label class="fl">Rôle</label><select class="fc" id="u-role">${Object.keys(ROLE_LABEL).map((role) => `<option value="${role}">${ROLE_LABEL[role]}</option>`).join("")}</select></div>
+        <div class="fg"><label class="fl">Validation</label><select class="fc" id="u-approval"><option value="accepted">Accepté</option><option value="pending">En attente</option><option value="rejected">Refusé</option></select></div>
         <div class="fg"><label class="fl">Statut</label><select class="fc" id="u-statut"><option value="actif">Actif</option><option value="inactif">Inactif</option></select></div>
       </div>
     </div>
@@ -1204,6 +1259,7 @@ function modalEditUser(index) {
       <div class="fg"><label class="fl">Mot de passe</label><input class="fc" id="eu-pwd" type="password" placeholder="Laisser vide pour conserver"></div>
       <div class="fr2">
         <div class="fg"><label class="fl">Rôle</label><select class="fc" id="eu-role">${Object.keys(ROLE_LABEL).map((role) => `<option value="${role}"${role === item.role ? " selected" : ""}>${ROLE_LABEL[role]}</option>`).join("")}</select></div>
+        <div class="fg"><label class="fl">Validation</label><select class="fc" id="eu-approval"><option value="accepted"${item.approvalStatus === "accepted" ? " selected" : ""}>Accepté</option><option value="pending"${item.approvalStatus === "pending" ? " selected" : ""}>En attente</option><option value="rejected"${item.approvalStatus === "rejected" ? " selected" : ""}>Refusé</option></select></div>
         <div class="fg"><label class="fl">Statut</label><select class="fc" id="eu-statut"><option value="actif"${item.statut === "actif" ? " selected" : ""}>Actif</option><option value="inactif"${item.statut !== "actif" ? " selected" : ""}>Inactif</option></select></div>
       </div>
     </div>
@@ -1232,6 +1288,38 @@ async function saveUser(index) {
   }
 }
 
+async function approveUser(index) {
+  const item = DB.users[index];
+  try {
+    await apiFetch(`${API.users}${item.pk}/approve/`, { method: "POST", loadingText: "Validation du compte..." });
+    await loadData();
+    go(curTab);
+    toast("Compte accepté.");
+  } catch (error) {
+    toast(error.message, "err");
+  }
+}
+
+async function rejectUser(index) {
+  const item = DB.users[index];
+  confirmAction({
+    title: "Refuser le compte",
+    message: `Refuser la demande de <strong>${item.nom}</strong> ?`,
+    confirmLabel: "Refuser",
+    confirmClass: "btn-warn",
+    onConfirm: async () => {
+      try {
+        await apiFetch(`${API.users}${item.pk}/reject/`, { method: "POST", loadingText: "Refus du compte..." });
+        await loadData();
+        go(curTab);
+        toast("Compte refusé.");
+      } catch (error) {
+        toast(error.message, "err");
+      }
+    },
+  });
+}
+
 async function delUser(index) {
   const item = DB.users[index];
   if (!confirm(`Supprimer "${item.nom}" ?`)) return;
@@ -1247,7 +1335,13 @@ async function delUser(index) {
 
 function pgPannesResp() {
   return `
-    <div class="s-title"><div><h2>Liste des pannes</h2><p>Suivi responsable maintenance</p></div></div>
+    <div class="s-title">
+      <div><h2>Liste des pannes</h2><p>Suivi responsable maintenance</p></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+        <button class="btn btn-ghost" onclick="exportData('incidents','xlsx')">Excel</button>
+        <button class="btn btn-ghost" onclick="exportData('incidents','pdf')">PDF</button>
+      </div>
+    </div>
     <div class="card"><div class="tbl-wrap"><table>
       <thead><tr><th>Code</th><th>Équipement</th><th>Criticité</th><th>Date</th><th>Statut</th><th>Option</th></tr></thead>
       <tbody>${DB.pannes.length ? DB.pannes.map((item, index) => `
@@ -1335,7 +1429,11 @@ function pgInterventionsResp() {
   return `
     <div class="s-title">
       <div><h2>Table des interventions</h2><p>Planification, affectation technicien et validation.</p></div>
-      <button class="btn btn-prim" onclick="modalNewInterv()">＋ Planifier une intervention</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+        <button class="btn btn-ghost" onclick="exportData('interventions','xlsx')">Excel</button>
+        <button class="btn btn-ghost" onclick="exportData('interventions','pdf')">PDF</button>
+        <button class="btn btn-prim" onclick="modalNewInterv()">＋ Planifier une intervention</button>
+      </div>
     </div>
     <div class="card"><div class="tbl-wrap"><table>
       <thead><tr><th>Code</th><th>Technicien</th><th>Équipement</th><th>Description</th><th>Type</th><th>Priorité</th><th>Statut</th><th>Début</th><th>Fin</th><th>Option</th></tr></thead>
@@ -1532,7 +1630,11 @@ function pgPannesOper() {
   return `
     <div class="s-title">
       <div><h2>Liste des pannes</h2><p>Déclarez et suivez vos pannes.</p></div>
-      <button class="btn btn-warn" onclick="modalSignalerPanne()">⚠ Signaler une panne</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+        <button class="btn btn-ghost" onclick="exportData('incidents','xlsx')">Excel</button>
+        <button class="btn btn-ghost" onclick="exportData('incidents','pdf')">PDF</button>
+        <button class="btn btn-warn" onclick="modalSignalerPanne()">⚠ Signaler une panne</button>
+      </div>
     </div>
     <div class="card"><div class="tbl-wrap"><table>
       <thead><tr><th>Technicien</th><th>Équipement</th><th>Description</th><th>Criticité</th><th>Date</th><th>Statut</th></tr></thead>
@@ -1613,7 +1715,13 @@ async function signalerPanne() {
 function pgInterventionsTech() {
   const mine = DB.interventions.filter((item) => item.technicienPk === CU.pk);
   return `
-    <div class="s-title"><div><h2>Mes interventions</h2><p>Rapports et suivi de vos tâches.</p></div></div>
+    <div class="s-title">
+      <div><h2>Mes interventions</h2><p>Rapports et suivi de vos tâches.</p></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+        <button class="btn btn-ghost" onclick="exportData('interventions','xlsx')">Excel</button>
+        <button class="btn btn-ghost" onclick="exportData('interventions','pdf')">PDF</button>
+      </div>
+    </div>
     <div class="card"><div class="tbl-wrap"><table>
       <thead><tr><th>Code</th><th>Équipement</th><th>Localisation</th><th>Description</th><th>Priorité</th><th>Statut</th><th>Date début</th><th>Date fin</th><th>Action</th></tr></thead>
       <tbody>${mine.length ? mine.map((item) => {
@@ -1841,6 +1949,45 @@ window.GMAOApiService = ApiService;
 
 async function apiFetch(url, options = {}, retry = true) {
   return ApiService.request(url, options, retry);
+}
+
+async function downloadApiFile(url, filename, retry = true) {
+  const headers = new Headers();
+  if (TOKENS.access) headers.set("Authorization", `Bearer ${TOKENS.access}`);
+  beginLoading("Préparation de l'export...");
+  try {
+    const response = await fetch(url, { headers });
+    if (response.status === 401 && retry && TOKENS.refresh) {
+      await refreshAccessToken();
+      return downloadApiFile(url, filename, false);
+    }
+    if (!response.ok) {
+      const isJson = response.headers.get("content-type")?.includes("application/json");
+      const payload = isJson ? await response.json() : await response.text();
+      throw new Error(normalizeApiError(payload, "Export impossible."));
+    }
+    const blob = await response.blob();
+    const href = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = href;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(href);
+    toast("Export généré.");
+  } catch (error) {
+    toast(error.message, "err");
+  } finally {
+    endLoading();
+  }
+}
+
+function exportData(kind, format) {
+  const base = API.exports?.[kind];
+  if (!base) return toast("Export non configuré.", "err");
+  const filename = `${kind}.${format}`;
+  return downloadApiFile(`${base}${format}/`, filename);
 }
 
 function safeSetHash(route) {
@@ -2269,6 +2416,7 @@ function validateUserPayload(prefix, passwordRequired = false) {
     full_name: fullName,
     email,
     role: V(`${prefix}role`),
+    approval_status: V(`${prefix}approval`) || "accepted",
     is_active: V(`${prefix}statut`) === "actif",
   };
   if (password) payload.password = password;
