@@ -10,7 +10,7 @@
             <p>Application GMAO pour la gestion de maintenance.</p>
         </div>
 
-        <form method="post" class="form-card">
+        <form method="post" class="form-card" id="login-form">
             {% csrf_token %}
             {{ form.non_field_errors }}
             <div class="form-group">
@@ -25,14 +25,40 @@
         </form>
 
         <div class="demo-box">
-            <strong>Comptes démo</strong>
-            <ul>
-                <li>admin@enib.tn / admin123</li>
-                <li>responsable@enib.tn / resp123</li>
-                <li>operateur@enib.tn / oper123</li>
-                <li>technicien@enib.tn / tech123</li>
-            </ul>
+            <strong>Comptes de démonstration</strong>
+            <p class="demo-subtitle">Cliquez sur un compte pour le pré-remplir</p>
+            <div class="demo-accounts">
+                <button type="button" class="demo-account-btn" data-email="admin@enib.tn" data-password="admin123">
+                    <span class="badge badge-admin">Admin</span>
+                    admin@enib.tn
+                </button>
+                <button type="button" class="demo-account-btn" data-email="responsable@enib.tn" data-password="resp123">
+                    <span class="badge badge-responsable">Responsable</span>
+                    responsable@enib.tn
+                </button>
+                <button type="button" class="demo-account-btn" data-email="operateur@enib.tn" data-password="oper123">
+                    <span class="badge badge-operateur">Opérateur</span>
+                    operateur@enib.tn
+                </button>
+                <button type="button" class="demo-account-btn" data-email="technicien@enib.tn" data-password="tech123">
+                    <span class="badge badge-technicien">Technicien</span>
+                    technicien@enib.tn
+                </button>
+            </div>
         </div>
     </div>
 </div>
+
+<script>
+document.querySelectorAll('.demo-account-btn').forEach(button => {
+    button.addEventListener('click', function(e) {
+        e.preventDefault();
+        const email = this.dataset.email;
+        const password = this.dataset.password;
+        document.querySelector('#id_username').value = email;
+        document.querySelector('#id_password').value = password;
+        document.querySelector('#id_username').focus();
+    });
+});
+</script>
 {% endblock %}
