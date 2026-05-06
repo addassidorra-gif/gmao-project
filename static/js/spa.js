@@ -47,12 +47,41 @@ const ROLE_LABEL = {
   technicien: "Technicien",
 };
 
-const CRIT_OPTIONS = ["Très élevée", "Élevée", "Haute", "Moyenne", "Faible"];
+const ROLE_HELP = {
+  admin: "CRUD complet sur tout le système",
+  responsable: "Planification et supervision interventions",
+  technicien: "Saisie interventions + rapports",
+  operateur: "Signalement pannes uniquement",
+};
+
+const CRIT_OPTIONS = ["Très élevée", "Élevée", "Moyenne", "Faible"];
 const EQUIP_STATUS_OPTIONS = ["En service", "En panne", "En maintenance", "Hors service"];
 const INCIDENT_STATUS_OPTIONS = ["En attente", "En cours", "Résolue"];
 const INTERVENTION_STATUS_OPTIONS = ["Planifiée", "En cours", "Terminée"];
-const INTERVENTION_PRIORITY_OPTIONS = ["Urgente", "Normale", "Faible", "Pas urgente"];
+const INTERVENTION_PRIORITY_OPTIONS = ["Très urgent", "Urgent", "Normal"];
 const INTERVENTION_TYPE_OPTIONS = ["Corrective", "Préventive"];
+
+function normalizePriorityValue(value = "") {
+  return {
+    "Très urgent": "Très urgent",
+    "Urgent": "Urgent",
+    "Urgente": "Urgent",
+    "Normal": "Normal",
+    "Normale": "Normal",
+    "Faible": "Normal",
+    "Pas urgente": "Normal",
+  }[value] || "Normal";
+}
+
+function normalizeCriticalityValue(value = "") {
+  return {
+    "Très élevée": "Très élevée",
+    "Élevée": "Élevée",
+    "Haute": "Élevée",
+    "Moyenne": "Moyenne",
+    "Faible": "Faible",
+  }[value] || "Moyenne";
+}
 
 const ICONS = {
   grid: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>`,
@@ -112,7 +141,7 @@ function daysBetween(startDate, endDate) {
 }
 
 function estimateCost(priority, days) {
-  const base = priority === "Urgente" ? 150 : priority === "Normale" ? 80 : 40;
+  const base = priority === "Très urgent" || priority === "Urgent" ? 150 : priority === "Normal" ? 80 : 40;
   return base + days * 15;
 }
 
@@ -143,12 +172,11 @@ function bCrit(value) {
   const map = {
     "Très élevée": "b-red",
     "Élevée": "b-red",
-    Haute: "b-red",
-    Urgente: "b-red",
+    "Très urgent": "b-red",
+    Urgent: "b-red",
     Moyenne: "b-orange",
-    Normale: "b-blue",
+    Normal: "b-blue",
     Faible: "b-green",
-    "Pas urgente": "b-blue",
   };
   return `<span class="badge ${map[value] || "b-gray"}">${value}</span>`;
 }
@@ -403,15 +431,37 @@ function modalRegister() {
       <div class="fg"><label class="fl">Nom complet</label><input class="fc" id="reg-nom" placeholder="Prénom Nom"></div>
       <div class="fg"><label class="fl">Email ENIB</label><input class="fc" id="reg-email" type="email" placeholder="nom@enib.tn"></div>
       <div class="fg"><label class="fl">Mot de passe</label><input class="fc" id="reg-pwd" type="password"></div>
-      <div class="fg"><label class="fl">Rôle demandé</label><select class="fc" id="reg-role">
-        <option value="operateur">Opérateur</option>
-        <option value="technicien">Technicien</option>
-        <option value="responsable">Resp. Atelier</option>
-      </select></div>
+      <div class="fg">
+        <label class="fl">Rôle demandé</label>
+        <input type="hidden" id="reg-role" value="operateur">
+        <div class="role-choice-grid">
+          ${roleChoiceCard("admin", "👑", false)}
+          ${roleChoiceCard("responsable", "🏭")}
+          ${roleChoiceCard("technicien", "🔧")}
+          ${roleChoiceCard("operateur", "🔔", true)}
+        </div>
+      </div>
       <p style="font-size:12px;color:var(--g500);line-height:1.6;margin-top:8px">Le compte sera accessible après validation par un administrateur.</p>
     </div>
     <div class="mft"><button class="btn btn-ghost" onclick="closeModal()">Annuler</button><button class="btn btn-prim" onclick="submitRegistration()">Envoyer</button></div>
   </div>`);
+}
+
+function roleChoiceCard(role, icon, selected = false) {
+  const disabled = role === "admin";
+  return `<button type="button" class="role-choice ${selected ? "selected" : ""} ${disabled ? "disabled" : ""}" data-role="${role}" onclick="${disabled ? "toast('Le rôle Admin est créé depuis le panneau administrateur.', 'warn')" : `selectRegistrationRole('${role}')`}">
+    <strong>${icon} ${ROLE_LABEL[role] || role}</strong>
+    <span>${ROLE_HELP[role] || ""}</span>
+  </button>`;
+}
+
+function selectRegistrationRole(role) {
+  const input = document.getElementById("reg-role");
+  if (!input) return;
+  input.value = role;
+  document.querySelectorAll(".role-choice").forEach((item) => {
+    item.classList.toggle("selected", item.dataset.role === role);
+  });
 }
 
 async function submitRegistration() {
@@ -695,7 +745,7 @@ function buildDashboardScenario() {
   const mttrSeed = ["6 h 20", "4 h 10", "2 h 15", "3 h 05", "1 h 40"];
   const recentRows = recentSource.map((item, index) => {
     const equipment = gEq(item.equipementId);
-    const impact = item.criticite === "Urgente" ? "Élevé" : item.criticite === "Faible" ? "Faible" : "Moyen";
+    const impact = ["Très urgent", "Urgent", "Très élevée", "Élevée"].includes(item.criticite) ? "Élevé" : item.criticite === "Faible" ? "Faible" : "Moyen";
     return {
       date: item.dateDebut || getToday(),
       equipment: equipment.nom || item.equipementId,
@@ -1085,7 +1135,7 @@ async function addEquip() {
         manufacturer: V("eq-fab"),
         reference: V("eq-ref"),
         location: V("eq-loc"),
-        criticality: V("eq-crit"),
+        criticality: normalizeCriticalityValue(V("eq-crit")),
         status: V("eq-etat"),
         purchase_date: V("eq-date") || null,
         description: "",
@@ -1138,7 +1188,7 @@ async function saveEquip(index) {
         manufacturer: V("eeq-fab"),
         reference: V("eeq-ref"),
         location: V("eeq-loc"),
-        criticality: V("eeq-crit"),
+        criticality: normalizeCriticalityValue(V("eeq-crit")),
         status: V("eeq-etat"),
         purchase_date: V("eeq-date") || null,
         description: item.description || "",
@@ -1503,7 +1553,7 @@ async function addInterv() {
         technician: Number(V("ni-tech")),
         equipment: Number(V("ni-eq")),
         description,
-        priority: V("ni-crit"),
+        priority: normalizePriorityValue(V("ni-crit")),
         intervention_type: V("ni-type"),
         status: "En cours",
         start_date: V("ni-debut") || getToday(),
@@ -1674,7 +1724,7 @@ function modalSignalerPanne() {
         <div class="fg"><label class="fl">Équipement</label><select class="fc" id="sp-eq">${equipmentOptionsHtml()}</select></div>
         <div class="fg"><label class="fl">Criticité</label><select class="fc" id="sp-crit">${CRIT_OPTIONS.map((item) => `<option${item === "Moyenne" ? " selected" : ""}>${item}</option>`).join("")}</select></div>
       </div>
-      <div class="fg"><label class="fl">Priorité</label><select class="fc" id="sp-prio">${INTERVENTION_PRIORITY_OPTIONS.map((item) => `<option${item === "Normale" ? " selected" : ""}>${item}</option>`).join("")}</select></div>
+      <div class="fg"><label class="fl">Priorité</label><select class="fc" id="sp-prio">${INTERVENTION_PRIORITY_OPTIONS.map((item) => `<option${item === "Normal" ? " selected" : ""}>${item}</option>`).join("")}</select></div>
       <div class="fg"><label class="fl">Titre</label><input class="fc" id="sp-title" placeholder="Exemple : panne moteur"></div>
       <div class="fg"><label class="fl">Description</label><textarea class="fc" id="sp-desc" rows="3" placeholder="Décrivez le problème observé..."></textarea></div>
     </div>
@@ -1697,8 +1747,8 @@ async function signalerPanne() {
         technician: Number(V("sp-tech")),
         title,
         description,
-        criticality: V("sp-crit"),
-        priority: V("sp-prio"),
+          criticality: normalizeCriticalityValue(V("sp-crit")),
+          priority: normalizePriorityValue(V("sp-prio")),
         status: "En attente",
         reported_at: `${V("sp-date")}T08:00:00+01:00`,
       }),
@@ -2242,7 +2292,7 @@ function modalPanneDetail(index) {
         <div><div class="fl">Code</div><p style="font-weight:700;color:var(--navy)">${item.id}</p></div>
         <div><div class="fl">Technicien</div><p>${tech.nom}</p></div>
         <div><div class="fl">Criticité</div>${bCrit(item.criticite)}</div>
-        <div><div class="fl">Priorité</div>${bCrit(item.priorite || "Normale")}</div>
+        <div><div class="fl">Priorité</div>${bCrit(item.priorite || "Normal")}</div>
         <div><div class="fl">Date</div><p>${fd(item.date)}</p></div>
         <div><div class="fl">Statut</div>${bEtat(item.statut)}</div>
       </div>
@@ -2353,7 +2403,7 @@ function validateEquipmentPayload(prefix) {
     manufacturer: V(`${prefix}fab`).trim(),
     reference: V(`${prefix}ref`).trim(),
     location,
-    criticality: V(`${prefix}crit`),
+    criticality: normalizeCriticalityValue(V(`${prefix}crit`)),
     status: V(`${prefix}etat`),
     purchase_date: V(`${prefix}date`) || null,
     description: "",
@@ -2481,8 +2531,8 @@ async function signalerPanne() {
         technician: Number(V("sp-tech")),
         title,
         description,
-        criticality: V("sp-crit"),
-        priority: V("sp-prio"),
+        criticality: normalizeCriticalityValue(V("sp-crit")),
+        priority: normalizePriorityValue(V("sp-prio")),
         status: "En attente",
         reported_at: `${V("sp-date")}T08:00:00+01:00`,
       }),
@@ -2513,7 +2563,7 @@ async function addInterv() {
         technician: Number(V("ni-tech")),
         equipment: Number(V("ni-eq")),
         description,
-        priority: V("ni-crit"),
+        priority: normalizePriorityValue(V("ni-crit")),
         intervention_type: V("ni-type"),
         status: "En cours",
         start_date: startDate,

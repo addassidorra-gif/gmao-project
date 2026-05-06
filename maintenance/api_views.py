@@ -68,7 +68,7 @@ class IncidentViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"], url_path=r"export/(?P<file_format>pdf|xlsx)")
     def export(self, request, file_format=None):
-        if request.user.role not in [User.Role.RESPONSABLE, User.Role.OPERATEUR]:
+        if request.user.role not in [User.Role.ADMIN, User.Role.RESPONSABLE, User.Role.OPERATEUR]:
             raise PermissionDenied("Export réservé aux rôles autorisés.")
         headers = ["Code", "Titre", "Équipement", "Technicien", "Opérateur", "Criticité", "Priorité", "Statut", "Signalée le"]
         rows = (
@@ -136,7 +136,7 @@ class InterventionViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"], url_path=r"export/(?P<file_format>pdf|xlsx)")
     def export(self, request, file_format=None):
-        if request.user.role not in [User.Role.RESPONSABLE, User.Role.TECHNICIEN]:
+        if request.user.role not in [User.Role.ADMIN, User.Role.RESPONSABLE, User.Role.TECHNICIEN]:
             raise PermissionDenied("Export réservé aux rôles autorisés.")
         headers = ["Code", "Équipement", "Technicien", "Type", "Priorité", "Statut", "Début", "Fin", "Rapport"]
         rows = (

@@ -5,6 +5,33 @@ from users.models import User
 from .models import Incident, Intervention
 
 
+# Legacy value mappings for backward compatibility
+LEGACY_PRIORITY_MAP = {
+    "Urgente": "Très urgent",
+    "Normale": "Normal",
+    "Faible": "Normal",
+    "Pas urgente": "Normal",
+}
+
+LEGACY_CRITICALITY_MAP = {
+    "Haute": "Élevée",
+}
+
+
+def normalize_priority(value):
+    """Convert legacy priority values to new ones"""
+    if not value:
+        return value
+    return LEGACY_PRIORITY_MAP.get(value, value)
+
+
+def normalize_criticality(value):
+    """Convert legacy criticality values to new ones"""
+    if not value:
+        return value
+    return LEGACY_CRITICALITY_MAP.get(value, value)
+
+
 class IncidentForm(forms.ModelForm):
     class Meta:
         model = Incident
@@ -40,6 +67,15 @@ class IncidentForm(forms.ModelForm):
             existing = field.widget.attrs.get("class", "")
             field.widget.attrs["class"] = f"{existing} form-control".strip()
 
+    def clean(self):
+        cleaned_data = super().clean()
+        # Normalize legacy values
+        if "priority" in cleaned_data and cleaned_data["priority"]:
+            cleaned_data["priority"] = normalize_priority(cleaned_data["priority"])
+        if "criticality" in cleaned_data and cleaned_data["criticality"]:
+            cleaned_data["criticality"] = normalize_criticality(cleaned_data["criticality"])
+        return cleaned_data
+
 
 class IncidentOperatorForm(forms.ModelForm):
     class Meta:
@@ -63,6 +99,15 @@ class IncidentOperatorForm(forms.ModelForm):
         for field in self.fields.values():
             existing = field.widget.attrs.get("class", "")
             field.widget.attrs["class"] = f"{existing} form-control".strip()
+
+    def clean(self):
+        cleaned_data = super().clean()
+        # Normalize legacy values
+        if "priority" in cleaned_data and cleaned_data["priority"]:
+            cleaned_data["priority"] = normalize_priority(cleaned_data["priority"])
+        if "criticality" in cleaned_data and cleaned_data["criticality"]:
+            cleaned_data["criticality"] = normalize_criticality(cleaned_data["criticality"])
+        return cleaned_data
 
 
 class InterventionForm(forms.ModelForm):
@@ -113,6 +158,9 @@ class InterventionForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        # Normalize legacy priority values
+        if "priority" in cleaned_data and cleaned_data["priority"]:
+            cleaned_data["priority"] = normalize_priority(cleaned_data["priority"])
         incident = cleaned_data.get("incident")
         equipment = cleaned_data.get("equipment")
         if incident and equipment and incident.equipment_id != equipment.id:

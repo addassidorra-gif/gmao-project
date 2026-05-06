@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
 
 from maintenance.export_utils import export_response
-from maintenance.utils import create_audit_log
+from maintenance.utils import create_audit_log, sync_equipment_status_incident
 from users.permissions import EquipmentPermission
 
 from .models import Equipement
@@ -17,6 +17,7 @@ class EquipementViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         equipement = serializer.save()
+        sync_equipment_status_incident(equipement, self.request.user)
         create_audit_log(
             user=self.request.user,
             action="create",
@@ -27,6 +28,7 @@ class EquipementViewSet(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         equipement = serializer.save()
+        sync_equipment_status_incident(equipement, self.request.user)
         create_audit_log(
             user=self.request.user,
             action="update",

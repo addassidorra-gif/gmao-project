@@ -7,7 +7,7 @@ from django.http import HttpResponse, HttpResponseForbidden
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 
-from maintenance.utils import create_audit_log
+from maintenance.utils import create_audit_log, sync_equipment_status_incident
 from users.mixins import RoleRequiredMixin
 
 from .forms import EquipementForm
@@ -45,6 +45,7 @@ class EquipementCreateView(RoleRequiredMixin, CreateView):
 
     def form_valid(self, form):
         response = super().form_valid(form)
+        sync_equipment_status_incident(self.object, self.request.user)
         create_audit_log(
             user=self.request.user,
             action="create",
@@ -65,6 +66,7 @@ class EquipementUpdateView(RoleRequiredMixin, UpdateView):
 
     def form_valid(self, form):
         response = super().form_valid(form)
+        sync_equipment_status_incident(self.object, self.request.user)
         create_audit_log(
             user=self.request.user,
             action="update",

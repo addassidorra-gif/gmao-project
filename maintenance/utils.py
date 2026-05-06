@@ -43,6 +43,39 @@ def apply_incident_create_rules(incident: Incident):
     incident.equipment.save(update_fields=["status", "updated_at"])
 
 
+def sync_equipment_status_incident(equipment: Equipement, user=None):
+    if equipment.status != Equipement.Status.EN_PANNE:
+        return None
+
+    open_incident = equipment.incidents.exclude(status=Incident.Status.RESOLUE).first()
+    if open_incident:
+        return open_incident
+
+    from users.models import User
+
+    technician = User.objects.filter(role=User.Role.TECHNICIEN, is_active=True).first()
+    incident = Incident.objects.create(
+        equipment=equipment,
+        technician=technician,
+        title=f"Panne signalée sur {equipment.name}",
+        description=(
+            "Panne créée automatiquement suite au passage de l'équipement "
+            "à l'état En panne par l'administrateur."
+        ),
+        criticality=equipment.criticality,
+        priority=Incident.Priority.NORMAL,
+        status=Incident.Status.EN_ATTENTE,
+    )
+    create_audit_log(
+        user=user,
+        action="create",
+        model_name="Incident",
+        object_id=incident.pk,
+        details={"code": incident.code, "title": incident.title, "source": "equipment_status"},
+    )
+    return incident
+
+
 def apply_incident_update_rules(incident: Incident):
     if incident.status == Incident.Status.RESOLUE:
         if not incident.resolved_at:

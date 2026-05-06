@@ -9,6 +9,29 @@ from users.models import User
 from .models import AuditLog, Incident, Intervention
 
 
+LEGACY_PRIORITY_VALUES = {
+    "Urgente": Incident.Priority.URGENT,
+    "Normale": Incident.Priority.NORMAL,
+    "Faible": Incident.Priority.NORMAL,
+    "Pas urgente": Incident.Priority.NORMAL,
+}
+
+LEGACY_CRITICALITY_VALUES = {
+    "Haute": Equipement.Criticality.ELEVEE,
+}
+
+
+def normalize_legacy_choice_values(data):
+    if not hasattr(data, "copy"):
+        return data
+    normalized = data.copy()
+    if normalized.get("priority") in LEGACY_PRIORITY_VALUES:
+        normalized["priority"] = LEGACY_PRIORITY_VALUES[normalized["priority"]]
+    if normalized.get("criticality") in LEGACY_CRITICALITY_VALUES:
+        normalized["criticality"] = LEGACY_CRITICALITY_VALUES[normalized["criticality"]]
+    return normalized
+
+
 class IncidentSerializer(serializers.ModelSerializer):
     equipment_name = serializers.CharField(source="equipment.name", read_only=True)
     equipment_code = serializers.CharField(source="equipment.code", read_only=True)
@@ -47,6 +70,9 @@ class IncidentSerializer(serializers.ModelSerializer):
         if len(value) < 4:
             raise serializers.ValidationError("Le titre doit contenir au moins 4 caractères.")
         return value
+
+    def to_internal_value(self, data):
+        return super().to_internal_value(normalize_legacy_choice_values(data))
 
     def validate_description(self, value):
         value = value.strip()
@@ -115,6 +141,9 @@ class InterventionSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
         read_only_fields = ["id", "code", "created_at", "updated_at"]
+
+    def to_internal_value(self, data):
+        return super().to_internal_value(normalize_legacy_choice_values(data))
 
     def validate_description(self, value):
         value = value.strip()

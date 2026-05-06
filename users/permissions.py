@@ -33,7 +33,7 @@ class IncidentPermission(BasePermission):
             return False
 
         if request.user.role == "admin":
-            return request.method in SAFE_METHODS
+            return True
 
         if request.user.role == "responsable":
             if request.method in SAFE_METHODS:
@@ -67,7 +67,7 @@ class InterventionPermission(BasePermission):
             return False
 
         if request.user.role == "admin":
-            return request.method in SAFE_METHODS
+            return True
 
         if request.user.role == "responsable":
             if request.method in SAFE_METHODS:

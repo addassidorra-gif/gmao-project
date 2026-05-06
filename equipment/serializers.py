@@ -4,10 +4,22 @@ from django.utils import timezone
 from .models import Equipement
 
 
+LEGACY_CRITICALITY_VALUES = {
+    "Haute": Equipement.Criticality.ELEVEE,
+}
+
+
 class EquipementSerializer(serializers.ModelSerializer):
     class Meta:
         model = Equipement
         fields = "__all__"
+
+    def to_internal_value(self, data):
+        if hasattr(data, "copy"):
+            data = data.copy()
+            if data.get("criticality") in LEGACY_CRITICALITY_VALUES:
+                data["criticality"] = LEGACY_CRITICALITY_VALUES[data["criticality"]]
+        return super().to_internal_value(data)
 
     def validate_code(self, value):
         value = value.strip()
