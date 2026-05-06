@@ -68,14 +68,14 @@ class Command(BaseCommand):
 
             status = "créé" if created else "mis à jour"
             self.stdout.write(
-                self.style.SUCCESS(f"✓ Compte {account['email']} {status} avec succès")
+                self.style.SUCCESS(f"OK Compte {account['email']} {status} avec succes")
             )
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"\n✓ {len(DEMO_ACCOUNTS)} comptes de démonstration sont prêts !"
+                f"\nOK {len(DEMO_ACCOUNTS)} comptes de demonstration sont prets."
             )
         )
         self.stdout.write(self.style.WARNING("\nComptes disponibles:"))
         for account in DEMO_ACCOUNTS:
-            self.stdout.write(f"  • {account['email']} / {account['password']}")
+            self.stdout.write(f"  - {account['email']} / {account['password']}")

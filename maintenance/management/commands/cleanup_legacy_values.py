@@ -27,24 +27,24 @@ class Command(BaseCommand):
         for old_value, new_value in legacy_priority_map.items():
             count = Incident.objects.filter(priority=old_value).update(priority=new_value)
             if count > 0:
-                self.stdout.write(self.style.SUCCESS(f"  ✓ Incident: {count} priorité(s) '{old_value}' convertie(s) en '{new_value}'"))
+                self.stdout.write(self.style.SUCCESS(f"  OK Incident: {count} priorite(s) '{old_value}' convertie(s) en '{new_value}'"))
 
         # Nettoyage des priorités dans Intervention
         for old_value, new_value in legacy_priority_map.items():
             count = Intervention.objects.filter(priority=old_value).update(priority=new_value)
             if count > 0:
-                self.stdout.write(self.style.SUCCESS(f"  ✓ Intervention: {count} priorité(s) '{old_value}' convertie(s) en '{new_value}'"))
+                self.stdout.write(self.style.SUCCESS(f"  OK Intervention: {count} priorite(s) '{old_value}' convertie(s) en '{new_value}'"))
 
         # Nettoyage des criticités dans Incident
         for old_value, new_value in legacy_criticality_map.items():
             count = Incident.objects.filter(criticality=old_value).update(criticality=new_value)
             if count > 0:
-                self.stdout.write(self.style.SUCCESS(f"  ✓ Incident: {count} criticité(s) '{old_value}' convertie(s) en '{new_value}'"))
+                self.stdout.write(self.style.SUCCESS(f"  OK Incident: {count} criticite(s) '{old_value}' convertie(s) en '{new_value}'"))
 
         # Nettoyage des criticités dans Equipement
         for old_value, new_value in legacy_criticality_map.items():
             count = Equipement.objects.filter(criticality=old_value).update(criticality=new_value)
             if count > 0:
-                self.stdout.write(self.style.SUCCESS(f"  ✓ Equipement: {count} criticité(s) '{old_value}' convertie(s) en '{new_value}'"))
+                self.stdout.write(self.style.SUCCESS(f"  OK Equipement: {count} criticite(s) '{old_value}' convertie(s) en '{new_value}'"))
 
-        self.stdout.write(self.style.SUCCESS("\n✓ Nettoyage des données terminé avec succès !"))
+        self.stdout.write(self.style.SUCCESS("\nOK Nettoyage des donnees termine avec succes."))
